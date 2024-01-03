@@ -18,6 +18,11 @@
  */
 package org.apache.tinkerpop.gremlin.process.traversal;
 
+import org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
 import java.util.Collection;
 import java.util.function.BiPredicate;
 
@@ -49,6 +54,12 @@ public enum Contains implements PBiPredicate<Object, Collection> {
     within {
         @Override
         public boolean test(final Object first, final Collection second) {
+            if ((first instanceof Vertex || first instanceof Edge)
+                    && second instanceof BulkSet<?> && ((BulkSet<?>)second).allContainedElementsSameClass() &&
+                    ((BulkSet<?>)second).getAllContainedElementsClass() != null &&
+                    Element.class.isAssignableFrom(((BulkSet<?>)second).getAllContainedElementsClass())) {
+                return second.contains(first);
+            }
             GremlinTypeErrorException typeError = null;
             for (final Object o : second) {
                 try {
